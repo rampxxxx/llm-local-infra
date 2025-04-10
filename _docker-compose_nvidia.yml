@@ -1,5 +1,7 @@
 services:
   open-webui:
+    restart: always
+    network_mode: "host"
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
     extra_hosts:
@@ -9,7 +11,7 @@ services:
     environment:
       UID: 1000
       PID: 1000
-      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_BASE_URL: http://localhost:11434
       WEBUI_SECRET_KEY:
     volumes:
       - ./data/webui:/app/backend/data
@@ -17,6 +19,8 @@ services:
       - ollama
 
   ollama:
+    restart: always
+    network_mode: "host"
     image: ollama/ollama:latest
     container_name: ollama
     environment:
@@ -26,11 +30,10 @@ services:
       resources:
         reservations:
           devices:
-            - driver: cdi
-              device_ids:
-                - nvidia.com/gpu=all
+            - driver: nvidia # Needs nvidia drivers and nvidia container toolkit https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+              count: 1
+              capabilities: [gpu]
     ports:
       - 11434:11434/tcp
     volumes:
       - ./data/ollama/ollama:/root/.ollama
-
